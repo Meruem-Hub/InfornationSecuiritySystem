@@ -23,12 +23,12 @@ class PrescriptionsController extends Controller
     {
         $data['doctors'] = Doctor::where("specialty",$request->specialty)->get(["id"]);
 
-        foreach ($data['doctors'] as $doctor) {   
+        foreach ($data['doctors'] as $doctor) {
             $aux=Doctor::where("id",$doctor->id)->first();
             $user=User::where("email",$aux->email)->select('name')->get()->first();
             $doctor['name']=$user->name;
         }
-        
+
         //$data['doctors'] = Doctor::select('doctors.*')->join('users', 'users.email', '=', 'doctors.email')->where('doctor.specialty', $request->specialty)->get(["doctors.id, users.name"]);
 
         return response()->json($data);
@@ -38,7 +38,7 @@ class PrescriptionsController extends Controller
     {
 
         $data['patient']=Patient::where('email',Auth::user()->email)->select(array('id','birthday','healthcare_number'))->get()->first();
-    
+
         $data['prescription'] = Prescription::where('id',$id)->where('patient_id',$data['patient']->id)->get()->first();
 
         if($data['prescription']!=null){
@@ -115,6 +115,9 @@ class PrescriptionsController extends Controller
      */
     public function store(Request $request)
     {
+        $filename = time() . '-' . $request->file('file')->getClientOriginalName();
+
+         $name = $request->file('file')->storeAs('public/files', $filename);
 
         $patient= Patient::where('email',Auth::user()->email)->get()->first();
 
@@ -123,7 +126,8 @@ class PrescriptionsController extends Controller
             'doctor_id'  => $request->doctor_id,
             'consultation' => $request->consultation,
             'diagnosis' => '',
-            'state' => 0
+            'state' => 0,
+            'file' => $filename,
         ]);
 
 
@@ -162,7 +166,7 @@ class PrescriptionsController extends Controller
 
 
                 if($data['prescription']->doctor_id != $data['doctor']->id)
-                return redirect('prescriptions');      
+                return redirect('prescriptions');
             }
         }
 
@@ -190,7 +194,7 @@ class PrescriptionsController extends Controller
             else if(Auth::user()->isDoctor()){
                 $doc=Doctor::where("email",Auth::user()->email)->get()->first();
                 if($prescription->doctor_id != $doc->id)
-                return redirect('prescriptions');      
+                return redirect('prescriptions');
             }
         }
 

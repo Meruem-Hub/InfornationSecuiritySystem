@@ -57,6 +57,21 @@
                             </div>
                         </div>
 
+                        <div class="row mb-3">
+                            <label for="file" class="col-md-4 col-form-label text-md-end">{{ __('Upload Image') }}</label>
+
+                            <div class="col-md-6">
+                                <input id="file" type="file" class="form-control @error('file') is-invalid @enderror" name="file"
+                                     />
+                                @error('file')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
+                            </div>
+                        </div>
+
+
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">
@@ -88,7 +103,7 @@ $(document).ready(function () {
                     },
                     dataType: 'json',
                     success: function (result) {
-                        if(result.doctors.length>0 ){                 
+                        if(result.doctors.length>0 ){
                         $('#doctor_id').html('<option value="">Select Doctor</option>');
                         $.each(result.doctors, function (key, value) {
                             $("#doctor_id").append('<option value="' + value

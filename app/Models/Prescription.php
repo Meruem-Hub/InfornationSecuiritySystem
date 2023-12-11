@@ -24,7 +24,7 @@ use betterapp\LaravelDbEncrypter\Traits\EncryptableDbAttribute;
  */
 class Prescription extends Model
 {
-    
+
     use EncryptableDbAttribute;
 
 
@@ -46,7 +46,7 @@ class Prescription extends Model
      *
      * @var array
      */
-    protected $fillable = ['patient_id','doctor_id','consultation','diagnosis','state'];
+    protected $fillable = ['patient_id','doctor_id','consultation','diagnosis','state','file'];
 
 
     /**
@@ -56,7 +56,7 @@ class Prescription extends Model
     {
         return $this->hasOne('App\Models\Doctor', 'id', 'doctor_id');
     }
-    
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
@@ -64,6 +64,6 @@ class Prescription extends Model
     {
         return $this->hasOne('App\Models\Patient', 'id', 'patient_id');
     }
-    
+
 
 }

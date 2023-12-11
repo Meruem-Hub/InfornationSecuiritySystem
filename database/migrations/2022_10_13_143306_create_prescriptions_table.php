@@ -23,6 +23,7 @@ class CreatePrescriptionsTable extends Migration
             $table->text('diagnosis');
             $table->boolean('state')->default(0); //0 if not responded 1 if yes
             $table->timestamps();
+            
         });
     }
 
