@@ -17,7 +17,7 @@ use App\Http\Controllers\PrescriptionsController;
 |
 */
 // routes/web.php
-Route::get('/logout', 'Auth\AuthenticatedSessionController@logout');
+
 
 
 Route::get('/', function () {

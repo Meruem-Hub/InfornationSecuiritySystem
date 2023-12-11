@@ -18,15 +18,15 @@ class CreateUsersTable extends Migration
     public function up()
     {
 
-        Schema::create('roles',function (Blueprint $table) {
-            $table->string('name');
+        Schema::create('roles', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->timestamps();
         });
 
-        $roles=['Patient','Doctor','Admin'];
+        $roles = ['Patient', 'Doctor', 'Admin'];
 
-        foreach($roles as $role){
+        foreach ($roles as $role) {
             Role::create(['name' => $role]);
         }
 
@@ -35,7 +35,7 @@ class CreateUsersTable extends Migration
             $table->string('email')->unique()->primary();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->unsignedInteger('role_id')->default(1); 
+            $table->unsignedInteger('role_id')->default(1);
             $table->rememberToken();
             $table->timestamps();
         });
@@ -62,7 +62,7 @@ class CreateUsersTable extends Migration
         });
 
         Schema::create('doctors', function (Blueprint $table) {
-            $table->string('id',9)->unique(); 
+            $table->string('id',9)->unique();
             $table->string('email')->unique();
             $table->foreign('email')->references('email')->on('users');
             $table->string('specialty');

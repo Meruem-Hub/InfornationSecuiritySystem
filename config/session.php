@@ -18,7 +18,7 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'file'),
+    'driver' => env('SESSION_DRIVER', 'database'), //This driver stores session data in a database table. Use this option if you want to manage sessions in a database.
 
     /*
     |--------------------------------------------------------------------------
@@ -31,9 +31,9 @@ return [
     |
     */
 
-    'lifetime' => env('SESSION_LIFETIME', 120),
+    'lifetime' => env('SESSION_LIFETIME', 1),
 
-    'expire_on_close' => false,
+    'expire_on_close' => true, // Set to true if you want sessions to expire when the user closes their browser
 
     /*
     |--------------------------------------------------------------------------
@@ -46,7 +46,7 @@ return [
     |
     */
 
-    'encrypt' => false,
+    'encrypt' => true, // Set to true to encrypt session data
 
     /*
     |--------------------------------------------------------------------------
@@ -168,7 +168,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    'secure' => env('SESSION_SECURE_COOKIE', true), // Set to true if you want to enforce HTTPS for session cookies
 
     /*
     |--------------------------------------------------------------------------
@@ -181,7 +181,7 @@ return [
     |
     */
 
-    'http_only' => true,
+    'http_only' => true, // Set to true to make session cookies accessible only through the HTTP protocol
 
     /*
     |--------------------------------------------------------------------------
