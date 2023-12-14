@@ -5,7 +5,13 @@
 @endsection
 
 @section('content')
+
     <div class="container-fluid">
+        @if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
@@ -49,7 +55,7 @@
                                     @foreach ($prescriptions as $prescription)
                                         <tr>
                                             <td>{{ ++$i }}</td>
-                                            
+
 											<td>{{ $prescription->patient_id }}</td>
 											<td>{{ $prescription->doctor_id }}</td>
 											<td>{{ \Illuminate\Support\Str::limit($prescription->consultation, 30, $end='...') }}</td>
@@ -63,7 +69,7 @@
                                                     @if(!$prescription->state || auth()->user()->isDoctor())<a class="btn btn-sm btn-primary " href="{{ route('prescriptions.show',$prescription->id) }}"><i class="fa fa-fw fa-eye"></i> Show</a>@endif
                                                     @if(Auth::user()->isDoctor() && !$prescription->state)
                                                     <a class="btn btn-sm btn-success" href="{{ route('prescriptions.edit',$prescription->id) }}"><i class="fa fa-fw fa-edit"></i> Respond</a>
-                                                    
+
                                                     @endif
                                                     @csrf
                                                     @if(Auth::user()->isPatient())

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 
 use Illuminate\Http\Request;
-use PDF;
+use App\Providers\VirusTotalService;
 
 /**
  * Class PrescriptionController
@@ -115,7 +115,25 @@ class PrescriptionsController extends Controller
      */
     public function store(Request $request)
     {
-        $filename = time() . '-' . $request->file('file')->getClientOriginalName();
+        $apiKey = "47b25a7a944d12e9b5b154a916bb42eae7d65a300566adc4f4728db41d5bc87d";
+        $filePath = $request->file('file')->path();
+        $apiUrl = "https://www.virustotal.com/vtapi/v2/file/report";
+        $fileHash = hash_file("sha256", $filePath);
+        $params = array(
+            "apikey" => $apiKey,
+            "resource" => $fileHash
+        );
+        $response = file_get_contents($apiUrl . '?' . http_build_query($params));
+        $report = json_decode($response);
+
+
+        if ($report && isset($report->positives) && $report->positives > 0) {
+            return redirect()->route('prescriptions.create')
+                ->with('fail', 'Prescription created successfully.');
+        } else {
+
+
+            $filename = time() . '-' . $request->file('file')->getClientOriginalName();
 
          $name = $request->file('file')->storeAs('public/files', $filename);
 
@@ -133,6 +151,9 @@ class PrescriptionsController extends Controller
 
         return redirect()->route('prescriptions.index')
             ->with('success', 'Prescription created successfully.');
+        }
+
+
     }
 
     /**
