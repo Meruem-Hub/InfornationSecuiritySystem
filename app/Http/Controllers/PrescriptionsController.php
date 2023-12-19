@@ -21,12 +21,12 @@ class PrescriptionsController extends Controller
 
     public function fetchDoctors(Request $request)
     {
-        $data['doctors'] = Doctor::where("specialty",$request->specialty)->get(["id"]);
+        $data['doctors'] = Doctor::where("specialty", $request->specialty)->get(["id"]);
 
         foreach ($data['doctors'] as $doctor) {
-            $aux=Doctor::where("id",$doctor->id)->first();
-            $user=User::where("email",$aux->email)->select('name')->get()->first();
-            $doctor['name']=$user->name;
+            $aux = Doctor::where("id", $doctor->id)->first();
+            $user = User::where("email", $aux->email)->select('name')->get()->first();
+            $doctor['name'] = $user->name;
         }
 
         //$data['doctors'] = Doctor::select('doctors.*')->join('users', 'users.email', '=', 'doctors.email')->where('doctor.specialty', $request->specialty)->get(["doctors.id, users.name"]);
@@ -37,33 +37,31 @@ class PrescriptionsController extends Controller
     public function downloadPDF($id)
     {
 
-        $data['patient']=Patient::where('email',Auth::user()->email)->select(array('id','birthday','healthcare_number'))->get()->first();
+        $data['patient'] = Patient::where('email', Auth::user()->email)->select(array('id', 'birthday', 'healthcare_number'))->get()->first();
 
-        $data['prescription'] = Prescription::where('id',$id)->where('patient_id',$data['patient']->id)->get()->first();
+        $data['prescription'] = Prescription::where('id', $id)->where('patient_id', $data['patient']->id)->get()->first();
 
-        if($data['prescription']!=null){
+        if ($data['prescription'] != null) {
 
-            $data['doctor']=Doctor::where('id',$data['prescription']->doctor_id)->select(array('specialty','email'))->get()->first();
-            $data['doctor_user']=User::where('email',$data['doctor']->email)->get('name')->first();
+            $data['doctor'] = Doctor::where('id', $data['prescription']->doctor_id)->select(array('specialty', 'email'))->get()->first();
+            $data['doctor_user'] = User::where('email', $data['doctor']->email)->get('name')->first();
 
-            $data['patient_user']=User::where('email',Auth::user()->email)->get('name')->first();
+            $data['patient_user'] = User::where('email', Auth::user()->email)->get('name')->first();
 
             PDF::setOptions(['isRemoteEnabled' => TRUE, 'enable_javascript' => TRUE]);
-            PDF::set_base_path( __DIR__ );
+            PDF::set_base_path(__DIR__);
             $pdf = new PDF();
             //$html = view('prescription.pdf',compact('data'))->render();
             //$pdf->loadHtml($html);
             //$pdf->render();
 
-            $pdf = PDF::loadView('prescription.pdf', compact('data') );
+            $pdf = PDF::loadView('prescription.pdf', compact('data'));
             $pdf->render();
-            return $pdf->download('eMedical-'.$data['prescription']->id.'.pdf');
+            return $pdf->download('eMedical-' . $data['prescription']->id . '.pdf');
 
             //return view('prescription.pdf', compact('data'));
 
-        }
-
-        else
+        } else
             return redirect()->route('prescriptions.index');
 
     }
@@ -77,15 +75,13 @@ class PrescriptionsController extends Controller
     public function index()
     {
 
-        if(Auth::user()->isDoctor()){
-            $doc=Doctor::where('email',Auth::user()->email)->get()->first();
-            $prescriptions = Prescription::where('doctor_id',$doc->id)->orderBy('state','asc')->paginate(5);
-        }
+        if (Auth::user()->isDoctor()) {
+            $doc = Doctor::where('email', Auth::user()->email)->get()->first();
+            $prescriptions = Prescription::where('doctor_id', $doc->id)->orderBy('state', 'asc')->paginate(5);
+        } else if (Auth::user()->isPatient()) {
 
-        else if (Auth::user()->isPatient()){
-
-            $pat=Patient::where('email',Auth::user()->email)->get()->first();
-            $prescriptions = Prescription::where('patient_id',$pat->id)->orderBy('state','desc')->paginate(5);
+            $pat = Patient::where('email', Auth::user()->email)->get()->first();
+            $prescriptions = Prescription::where('patient_id', $pat->id)->orderBy('state', 'desc')->paginate(5);
         }
 
         return view('prescription.index', compact('prescriptions'))
@@ -104,7 +100,7 @@ class PrescriptionsController extends Controller
         $prescription = new Prescription();
         $specialties = Doctor::select('specialty')->distinct()->get();
 
-        return view('prescription.create', compact('prescription','specialties'));
+        return view('prescription.create', compact('prescription', 'specialties'));
     }
 
     /**
@@ -115,6 +111,13 @@ class PrescriptionsController extends Controller
      */
     public function store(Request $request)
     {
+
+
+        // Ensure that no malicious content, such as JavaScript or viruses, is uploaded
+        $request->validate([
+            'file' => 'required|mimes:doc,docx,pdf,txt|max:2048',
+        ]);
+
         $apiKey = "47b25a7a944d12e9b5b154a916bb42eae7d65a300566adc4f4728db41d5bc87d";
         $filePath = $request->file('file')->path();
         $apiUrl = "https://www.virustotal.com/vtapi/v2/file/report";
@@ -135,22 +138,22 @@ class PrescriptionsController extends Controller
 
             $filename = time() . '-' . $request->file('file')->getClientOriginalName();
 
-         $name = $request->file('file')->storeAs('public/files', $filename);
+            $name = $request->file('file')->storeAs('public/files', $filename);
 
-        $patient= Patient::where('email',Auth::user()->email)->get()->first();
+            $patient = Patient::where('email', Auth::user()->email)->get()->first();
 
-        $prescription = Prescription::create([
-            'patient_id' => $patient->id,
-            'doctor_id'  => $request->doctor_id,
-            'consultation' => $request->consultation,
-            'diagnosis' => '',
-            'state' => 0,
-            'file' => $filename,
-        ]);
+            $prescription = Prescription::create([
+                'patient_id' => $patient->id,
+                'doctor_id' => $request->doctor_id,
+                'consultation' => $request->consultation,
+                'diagnosis' => '',
+                'state' => 0,
+                'file' => $filename,
+            ]);
 
 
-        return redirect()->route('prescriptions.index')
-            ->with('success', 'Prescription created successfully.');
+            return redirect()->route('prescriptions.index')
+                ->with('success', 'Prescription created successfully.');
         }
 
 
@@ -168,26 +171,25 @@ class PrescriptionsController extends Controller
     {
         $data['prescription'] = Prescription::find($id);
 
-        if($data['prescription']==null)
+        if ($data['prescription'] == null)
             return redirect('prescriptions');
-        else{
-            if(Auth::user()->isPatient()){
-                $data['patient']=Patient::where("email",Auth::user()->email)->get()->first();
-                $data['doctor']=Doctor::where('id',$data['prescription']->doctor_id)->select(array('specialty','email'))->get()->first();
-                $data['doctor_user']=User::where('email',$data['doctor']->email)->get('name')->first();
-                $data['patient_user']=User::where('email',Auth::user()->email)->get('name')->first();
-                if($data['prescription']->patient_id != $data['patient']->id)
-                return redirect('prescriptions');
-            }
-            else if(Auth::user()->isDoctor()){
-                $data['doctor']=Doctor::where("email",Auth::user()->email)->get()->first();
-                $data['patient']=Patient::where('id',$data['prescription']->patient_id)->select(array('id','birthday','email','healthcare_number'))->get()->first();
-                $data['doctor_user']=User::where('email',Auth::user()->email)->get('name')->first();
-                $data['patient_user']=User::where('email',$data['patient']->email)->get('name')->first();
+        else {
+            if (Auth::user()->isPatient()) {
+                $data['patient'] = Patient::where("email", Auth::user()->email)->get()->first();
+                $data['doctor'] = Doctor::where('id', $data['prescription']->doctor_id)->select(array('specialty', 'email'))->get()->first();
+                $data['doctor_user'] = User::where('email', $data['doctor']->email)->get('name')->first();
+                $data['patient_user'] = User::where('email', Auth::user()->email)->get('name')->first();
+                if ($data['prescription']->patient_id != $data['patient']->id)
+                    return redirect('prescriptions');
+            } else if (Auth::user()->isDoctor()) {
+                $data['doctor'] = Doctor::where("email", Auth::user()->email)->get()->first();
+                $data['patient'] = Patient::where('id', $data['prescription']->patient_id)->select(array('id', 'birthday', 'email', 'healthcare_number'))->get()->first();
+                $data['doctor_user'] = User::where('email', Auth::user()->email)->get('name')->first();
+                $data['patient_user'] = User::where('email', $data['patient']->email)->get('name')->first();
 
 
-                if($data['prescription']->doctor_id != $data['doctor']->id)
-                return redirect('prescriptions');
+                if ($data['prescription']->doctor_id != $data['doctor']->id)
+                    return redirect('prescriptions');
             }
         }
 
@@ -204,18 +206,17 @@ class PrescriptionsController extends Controller
     {
         $prescription = Prescription::find($id);
 
-        if($prescription==null)
-         return redirect('prescriptions');
-        else{
-            if(Auth::user()->isPatient()){
-                $pat=Patient::where("email",Auth::user()->email)->get()->first();
-                if($prescription->patient_id != $pat->id)
-                return redirect('prescriptions');
-            }
-            else if(Auth::user()->isDoctor()){
-                $doc=Doctor::where("email",Auth::user()->email)->get()->first();
-                if($prescription->doctor_id != $doc->id)
-                return redirect('prescriptions');
+        if ($prescription == null)
+            return redirect('prescriptions');
+        else {
+            if (Auth::user()->isPatient()) {
+                $pat = Patient::where("email", Auth::user()->email)->get()->first();
+                if ($prescription->patient_id != $pat->id)
+                    return redirect('prescriptions');
+            } else if (Auth::user()->isDoctor()) {
+                $doc = Doctor::where("email", Auth::user()->email)->get()->first();
+                if ($prescription->doctor_id != $doc->id)
+                    return redirect('prescriptions');
             }
         }
 
@@ -234,7 +235,7 @@ class PrescriptionsController extends Controller
         request()->validate(Prescription::$rules);
 
         $prescription->update($request->all());
-        $prescription->state=1;
+        $prescription->state = 1;
         $prescription->save();
 
         return redirect()->route('prescriptions.index')
