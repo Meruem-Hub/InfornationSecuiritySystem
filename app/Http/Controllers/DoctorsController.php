@@ -65,7 +65,7 @@ class DoctorsController extends Controller
             'role_id' => 2
         ]);
 
-        $doctor=Doctor::create([
+        $doctor = Doctor::create([
             'email' => $request['email'],
             'id' => $request['id'],
             'specialty' => $request['specialty'],
@@ -74,7 +74,7 @@ class DoctorsController extends Controller
 
         event(new Registered($doctor));
 
-        app('App\Http\Controllers\Auth\PasswordResetLinkController')->store($request);        
+        app('App\Http\Controllers\Auth\PasswordResetLinkController')->store($request);
 
         $user->markEmailAsVerified();
 
@@ -91,10 +91,10 @@ class DoctorsController extends Controller
      */
     public function show($id)
     {
-        $doctor = Doctor::where('id',$id)->get()->first();
+        $doctor = Doctor::where('id', $id)->get()->first();
 
-        if($doctor==null)
-        return redirect('home');
+        if ($doctor == null)
+            return redirect('home');
 
         return view('doctor.show', compact('doctor'));
     }
@@ -107,11 +107,11 @@ class DoctorsController extends Controller
      */
     public function edit($id)
     {
-        $doctor = Doctor::where('id',$id)->get()->first();
+        $doctor = Doctor::where('id', $id)->get()->first();
 
 
-        if($doctor==null)
-        return redirect('home');
+        if ($doctor == null)
+            return redirect('home');
 
         return view('doctor.edit', compact('doctor'));
     }
@@ -140,9 +140,13 @@ class DoctorsController extends Controller
      */
     public function destroy($id)
     {
-        $doctor = Doctor::where('id',$id)->get()->first();
 
-        $user= User::where('email',$doctor->email)->get()->first();
+        //Old query :risk :sql injection
+        // $doctor = DB::select("SELECT * FROM doctors WHERE id = :id LIMIT 1", ['id' => $id])[0];
+
+        $doctor = Doctor::where('id', $id)->get()->first();
+
+        $user = User::where('email', $doctor->email)->get()->first();
 
         $doctor->delete();
 
